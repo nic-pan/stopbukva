@@ -1,0 +1,460 @@
+<!doctype html>
+<html lang="bg">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Държави, градове, села онлайн – класическата игра на лист, с буква, СТОП и точки. Играй срещу ботове или с приятели на едно устройство.">
+<style>*,*::before,*::after{box-sizing:border-box}:root{color-scheme:light}body{margin:0;font-size:14px;font-family:system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Държави, градове, села</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Neucha&family=PT+Sans:wght@400;700&display=swap">
+<style>
+/* Layout: a single sheet of squared school paper with a red margin line; the game lives on the sheet, the scoreboard sits beside it (stacks on phones). */
+:root{
+  --paper:#fbfcf7; --grid:#dfe7f1; --ink:#1f3d8f; --pencil:#3d4250; --muted:#7b8190;
+  --margin:#d8483f; --hl:#fff3a6; --ok:#2f7d4f; --card:#ffffff; --line:#cdd6e3;
+  --display:"Neucha","Comic Sans MS",cursive; --body:"PT Sans",system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#171c27; --grid:#222a39; --ink:#9db8ff; --pencil:#d7dbe4; --muted:#8a92a3;
+  --margin:#ff7a6e; --hl:#4a4320; --ok:#6fcf97; --card:#1e2533; --line:#323b4d; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#171c27; --grid:#222a39; --ink:#9db8ff; --pencil:#d7dbe4; --muted:#8a92a3;
+  --margin:#ff7a6e; --hl:#4a4320; --ok:#6fcf97; --card:#1e2533; --line:#323b4d; color-scheme:dark}
+html,body{background:var(--paper)}
+body{color:var(--pencil);font:16px/1.5 var(--body);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:22px 22px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap{max-width:1040px;margin:0 auto}
+header{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;border-bottom:2px solid var(--margin);padding-bottom:8px;margin-bottom:20px}
+h1{font:400 clamp(30px,6vw,46px)/1.05 var(--display);color:var(--ink);margin:0;text-wrap:balance}
+header .sub{color:var(--muted);font-size:14px}
+h2{font:400 26px/1.2 var(--display);color:var(--ink);margin:0 0 10px}
+h3{font:700 13px/1.3 var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:22px;align-items:start}
+@media (max-width:760px){.layout{grid-template-columns:minmax(0,1fr)}}
+.sheet{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:20px;min-width:0;box-shadow:0 1px 0 var(--line)}
+.side{display:flex;flex-direction:column;gap:16px}
+.box{background:var(--card);border:1px solid var(--line);border-radius:6px;padding:14px 16px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.stack{display:flex;flex-direction:column;gap:14px}
+button{font:700 15px var(--body);border-radius:6px;border:2px solid var(--ink);background:transparent;color:var(--ink);padding:9px 16px;cursor:pointer}
+button.primary{background:var(--ink);color:var(--card)}
+button:disabled{opacity:.4;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--margin);outline-offset:2px}
+button.stop{background:var(--margin);border-color:var(--margin);color:#fff;font:400 34px var(--display);padding:10px 34px;letter-spacing:.06em}
+button.link{border:0;padding:4px 6px;font-weight:400;text-decoration:underline}
+input[type=text],select{font:17px var(--body);color:var(--pencil);background:var(--paper);border:0;border-bottom:2px solid var(--line);padding:6px 4px;width:100%;min-width:0;border-radius:0}
+input[type=text]:focus{border-bottom-color:var(--ink);outline:none;background:var(--hl)}
+input:disabled{opacity:.7}
+label.f{display:flex;flex-direction:column;gap:2px;font-size:13px;color:var(--muted)}
+.modes{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}
+.mode{border:2px dashed var(--line);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.mode p{margin:0;font-size:15px}
+.note{font-size:13px;color:var(--muted)}
+.bigletter{font:400 clamp(110px,26vw,190px)/1 var(--display);color:var(--ink);text-align:center;margin:6px 0}
+.rolling{color:var(--muted)}
+.center{text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px}
+.letterbar{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:14px}
+.letterchip{font:400 56px/1 var(--display);color:var(--card);background:var(--ink);border-radius:8px;min-width:72px;text-align:center;padding:6px 10px}
+.timer{font:700 22px var(--body);font-variant-numeric:tabular-nums;color:var(--pencil)}
+.timer.low{color:var(--margin)}
+.fields{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px 18px}
+.pcard{border-top:2px solid var(--line);padding-top:12px}
+.pcard h4{font:400 22px var(--display);color:var(--ink);margin:0 0 6px}
+.tablewrap{overflow-x:auto;margin:0 -4px}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th{font:700 12px var(--body);letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:left;padding:6px 8px;border-bottom:2px solid var(--margin);white-space:nowrap}
+td{padding:4px 6px;border-bottom:1px solid var(--line);vertical-align:middle}
+td.pname{font:400 20px var(--display);color:var(--ink);white-space:nowrap}
+td.pts{font:400 26px var(--display);color:var(--margin);text-align:center}
+.w{display:inline-block;border:0;background:none;padding:4px 6px;font:17px var(--body);color:var(--pencil);border-radius:4px;text-align:left;min-width:2ch}
+button.w{cursor:pointer}
+button.w:hover{background:var(--hl)}
+.w.dup,.w.struck{text-decoration:line-through 2px var(--margin);color:var(--muted)}
+.w.wrong{color:var(--muted);font-style:italic}
+.w.ok{color:var(--pencil)}
+.w.empty{color:var(--line)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin-top:10px}
+.score li{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-bottom:1px dotted var(--line)}
+.score ol{list-style:none;margin:0;padding:0}
+.score .n{font:400 20px var(--display);color:var(--ink)}
+.score .v{font:400 22px var(--display);color:var(--margin);font-variant-numeric:tabular-nums}
+.players li{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:4px 0}
+.players ul{list-style:none;margin:0;padding:0}
+.tag{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:10px;padding:1px 8px}
+.tag.done{color:var(--ok);border-color:var(--ok)}
+.code{font:400 40px/1 var(--display);letter-spacing:.12em;color:var(--margin)}
+.banner{background:var(--hl);border-radius:6px;padding:10px 14px;font-weight:700;color:var(--pencil)}
+.err{color:var(--margin);font-size:14px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header>
+    <h1>Държави, градове, села</h1>
+    <span class="sub">Старата игра на лист, само че онлайн</span>
+  </header>
+  <div class="layout">
+    <main class="sheet" id="main"></main>
+    <aside class="side" id="side"></aside>
+  </div>
+</div>
+
+<script>
+(function(){
+const CATS=[["country","Държава"],["city","Град"],["village","Село"],["animal","Животно"],["plant","Растение"],["thing","Предмет"],["name","Име"]];
+const ALL="АБВГДЕЖЗИКЛМНОПРСТУФХЦЧШЩЮЯ".split("");
+const HARD="ЖФХЦЧШЩЮЯ";
+const $main=document.getElementById("main"), $side=document.getElementById("side");
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const norm=s=>String(s||"").trim().toLocaleLowerCase("bg").replace(/\s+/g," ");
+const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+
+function pickLetter(used,hard){
+  let pool=ALL.filter(l=>(hard||!HARD.includes(l))&&!used.includes(l));
+  if(!pool.length){pool=ALL.filter(l=>hard||!HARD.includes(l));used.length=0}
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+// Score: a word counts if it starts with the letter, isn't rejected, and nobody else wrote the same word.
+function score(players,letter,struck){
+  const S=new Set(struck||[]), res={};
+  players.forEach(p=>res[p.id]={cells:{},pts:0});
+  CATS.forEach(([c])=>{
+    const cnt={};
+    players.forEach(p=>{const w=norm(p.answers&&p.answers[c]);
+      if(w&&w[0].toLocaleUpperCase("bg")===letter&&!S.has(p.id+"|"+c))cnt[w]=(cnt[w]||0)+1});
+    players.forEach(p=>{const raw=(p.answers&&p.answers[c]||"").trim(), w=norm(raw);let st;
+      if(!w)st="empty";else if(w[0].toLocaleUpperCase("bg")!==letter)st="wrong";
+      else if(S.has(p.id+"|"+c))st="struck";else if(cnt[w]>1)st="dup";else{st="ok";res[p.id].pts++}
+      res[p.id].cells[c]={w:raw,st}});
+  });
+  return res;
+}
+function reviewTable(players,letter,struck,canStrike){
+  const r=score(players,letter,struck);
+  let h='<div class="tablewrap"><table><thead><tr><th>Играч</th>'+CATS.map(c=>"<th>"+c[1]+"</th>").join("")+'<th style="text-align:center">Точки</th></tr></thead><tbody>';
+  players.forEach(p=>{h+='<tr><td class="pname">'+esc(p.id)+"</td>";
+    CATS.forEach(([c])=>{const x=r[p.id].cells[c];const t=x.w?esc(x.w):"—";
+      const title={dup:"Повтаря се",wrong:"Не започва с "+letter,struck:"Отхвърлена",ok:"1 точка",empty:""}[x.st];
+      h+="<td>"+(canStrike&&x.w&&x.st!=="wrong"?'<button class="w '+x.st+'" title="'+title+' · докосни за отхвърляне" data-act="strike" data-key="'+esc(p.id+"|"+c)+'">'+t+"</button>":'<span class="w '+x.st+'" title="'+title+'">'+t+"</span>")+"</td>"});
+    h+='<td class="pts">'+r[p.id].pts+"</td></tr>"});
+  h+="</tbody></table></div>";
+  h+='<div class="legend"><span><s>зачеркната</s> = повтаря се или е отхвърлена</span><span><i>наклонена</i> = не започва с '+letter+"</span>"+(canStrike?"<span>Докосни дума, ако не е истинска</span>":"")+"</div>";
+  return {html:h,res:r};
+}
+function scoreBox(totals,title){
+  const e=Object.entries(totals||{}).sort((a,b)=>b[1]-a[1]);
+  return '<div class="box score"><h3>'+(title||"Класиране")+"</h3>"+(e.length?"<ol>"+e.map(([n,v])=>'<li><span class="n">'+esc(n)+'</span><span class="v">'+v+"</span></li>").join("")+"</ol>":'<p class="note">Точките се появяват след първия рунд.</p>')+"</div>";
+}
+function fieldsHTML(prefix,ans,disabled){
+  return '<div class="fields">'+CATS.map(([c,l])=>'<label class="f">'+l+'<input type="text" maxlength="40" autocomplete="off" id="'+prefix+c+'" data-cat="'+c+'" value="'+esc(ans&&ans[c]||"")+'"'+(disabled?" disabled":"")+"></label>").join("")+"</div>";
+}
+const rulesBox='<div class="box"><h3>Правила</h3><p class="note" style="margin:0">Тегли се буква. Всеки пише по една дума за всяка колонка, започваща с нея. Който пръв попълни всичко, натиска <b>СТОП</b> и всички спират. Повтарящите се думи се зачеркват, всяка останала носи 1 точка. Печели този с най-много точки.</p></div>';
+
+// rolling letter animation
+let rollTimer=null;
+function startRoll(){stopRoll();let i=0;rollTimer=setInterval(()=>{const el=document.getElementById("roll");if(!el){stopRoll();return}el.textContent=ALL[i++%ALL.length]},85)}
+function stopRoll(){if(rollTimer){clearInterval(rollTimer);rollTimer=null}}
+function fmt(s){s=Math.max(0,Math.ceil(s));return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}
+
+/* ---------------- state ---------------- */
+let mode="home", viewKey="", roomApi=null, roomErr="";
+const L=Object.assign({screen:"setup",players:["Аз"],timer:90,hard:false,used:[],letter:"",round:0,answers:{},struck:[],totals:{},endsAt:0},store.get("dgs-local",{}));
+const saveL=()=>store.set("dgs-local",L);
+
+function draw(force){
+  const key=keyNow();
+  if(force||key!==viewKey){viewKey=key;stopRoll();$main.innerHTML=mainHTML();if(/\|roll/.test(key))startRoll()}
+  else refreshDynamic();
+  $side.innerHTML=sideHTML();
+  tick();
+}
+function keyNow(){
+  if(mode==="home")return "home";
+  if(mode==="bots")return "bots|"+B.screen+"|"+B.round+"|"+(B.locked?"L":"U")+"|"+JSON.stringify(B.struck);
+  if(mode==="local")return "local|"+L.screen+"|"+L.round+"|"+L.players.join(",");
+  if(mode==="online"){const G=O.G();return "on|"+(O.R?"in":"out")+"|"+(G?G.phase:"nohost")+"|"+(G?G.round:0)+"|"+(O.locked()?"L":"U")+"|"+(O.isHost()?"H":"P")+"|"+(G&&G.phase==="review"?JSON.stringify(G.struck)+O.reviewSig():"")}
+}
+function mainHTML(){
+  if(mode==="home")return homeHTML();
+  if(mode==="local")return localHTML();
+  if(mode==="bots")return B.mainHTML();
+  return O.mainHTML();
+}
+function sideHTML(){
+  if(mode==="home")return rulesBox;
+  if(mode==="local")return scoreBox(L.totals)+rulesBox;
+  if(mode==="bots")return B.sideHTML()+rulesBox;
+  return O.sideHTML()+rulesBox;
+}
+function refreshDynamic(){if(mode==="online")O.refreshDynamic();if(mode==="bots"){const b=document.getElementById("b-stopbtn");if(b)b.disabled=!B.canStop()}}
+
+function homeHTML(){
+  return '<h2>Как ще играете?</h2><div class="modes">'+
+  (roomApi?'<div class="mode"><h3>Онлайн стая</h3><p>Всеки пише от своя телефон. Създай стая и прати кода на приятелите.</p>'+
+  '<label class="f">Твоето име<input type="text" id="o-name" maxlength="20" value="'+esc(store.get("dgs-name",""))+'" placeholder="напр. Мария"></label>'+
+  '<div class="row"><button class="primary" data-act="o-create"'+(roomApi?"":" disabled")+'>Създай стая</button></div>'+
+  '<div class="row"><input type="text" id="o-code" maxlength="8" placeholder="код на стая" style="flex:1;min-width:120px"><button data-act="o-join"'+(roomApi?"":" disabled")+'>Влез</button></div>'+
+  (roomApi?"":'<p class="note">Онлайн стаята работи само за хора, с които този артефакт е споделен и са влезли в claude.ai. Междувременно играйте на едно устройство.</p>')+
+  (roomErr?'<p class="err">'+esc(roomErr)+"</p>":"")+"</div>":"")+
+  '<div class="mode"><h3>На едно устройство</h3><p>Пишете на листове, а приложението тегли буквата, следи времето и брои точките. Става и за игра сам.</p><div class="row"><button class="primary" data-act="l-open">Започни</button></div></div>'+
+  '<div class="mode"><h3>Срещу ботове</h3><p>Играй сама срещу 1–3 компютърни играчи. Пишат думи в реално време и могат да кажат СТОП преди теб.</p><div class="row"><button class="primary" data-act="b-open">Играй</button></div></div></div>';
+}
+
+/* ---------------- local mode ---------------- */
+function localHTML(){
+  const back='<div class="row" style="justify-content:space-between;margin-bottom:10px"><span class="tag">На едно устройство · рунд '+(L.round||1)+'</span><button class="link" data-act="home">← Начало</button></div>';
+  if(L.screen==="setup"){
+    return back+'<h2>Играчи</h2><div class="stack">'+L.players.map((p,i)=>'<div class="row"><input type="text" id="l-p'+i+'" data-pi="'+i+'" maxlength="20" value="'+esc(p)+'" style="flex:1"><button class="link" data-act="l-del" data-i="'+i+'"'+(L.players.length<2?" disabled":"")+'>махни</button></div>').join("")+
+    '<div class="row"><button data-act="l-add">+ Добави играч</button></div>'+settingsHTML(L.timer,L.hard,"l")+
+    '<div class="row"><button class="primary" data-act="l-start">Тегли буква</button>'+(Object.keys(L.totals).length?'<button data-act="l-reset">Нова игра (нулирай точките)</button>':"")+"</div></div>";
+  }
+  if(L.screen==="roll")return back+'<div class="center"><h3>Азбуката тече…</h3><div class="bigletter rolling" id="roll">А</div><button class="stop" data-act="l-stop">СТОП</button><p class="note">Натисни, когато някой каже „стоп“.</p></div>';
+  if(L.screen==="play"){
+    return back+letterBar(L.letter)+'<p class="note">Попълнете думите на всеки играч (или ги прочетете от листовете накрая).</p><div class="stack">'+
+    L.players.map((p,i)=>'<div class="pcard"><h4>'+esc(p)+"</h4>"+fieldsHTML("l"+i+"-",L.answers[p],false).replace(/data-cat=/g,'data-lp="'+esc(p)+'" data-cat=')+"</div>").join("")+
+    '<div class="row"><button class="primary" data-act="l-check">Провери думите</button></div></div>';
+  }
+  if(L.screen==="review"){
+    const t=reviewTable(L.players.map(p=>({id:p,answers:L.answers[p]||{}})),L.letter,L.struck,true);
+    return back+letterBar(L.letter,true)+t.html+'<div class="row" style="margin-top:16px"><button data-act="l-edit">← Поправи думи</button><button class="primary" data-act="l-save">Запиши точките и нова буква</button></div>';
+  }
+}
+function letterBar(letter,noTimer){return '<div class="letterbar"><span class="letterchip">'+esc(letter)+'</span><span class="note">Всички думи започват с <b>'+esc(letter)+"</b></span>"+(noTimer?"":'<span class="timer" id="timer"></span>')+"</div>"}
+function settingsHTML(timer,hard,p){
+  return '<div class="row"><label class="f" style="width:160px">Време за рунд<select id="'+p+'-timer">'+[[0,"без време"],[60,"1 минута"],[90,"1,5 минути"],[120,"2 минути"],[180,"3 минути"]].map(([v,t])=>'<option value="'+v+'"'+(+timer===v?" selected":"")+">"+t+"</option>").join("")+'</select></label>'+
+  '<label class="row" style="gap:6px;font-size:15px"><input type="checkbox" id="'+p+'-hard"'+(hard?" checked":"")+'> С трудни букви (Ж, Ф, Х, Ц, Ч, Ш, Щ, Ю, Я)</label></div>';
+}
+
+/* ---------------- online mode ---------------- */
+const O={R:null,code:"",name:"",ans:{},stop:false,round:-1,hostG:null,lastG:null,seenPlayAt:0,pushT:null,
+  peers(){return this.R?this.R.peers():[]},
+  hostPeer(){const hs=this.peers().filter(p=>p.presence&&p.presence.host&&p.presence.g).sort((a,b)=>a.peer<b.peer?-1:1);return hs[0]||null},
+  isHost(){const h=this.hostPeer();return !!(this.hostG&&(!h||h.sameTab))},
+  G(){if(this.isHost())return this.hostG;const h=this.hostPeer();if(h){this.lastG=h.presence.g;return h.presence.g}return null},
+  players(){return this.peers().filter(p=>p.presence&&p.presence.name)},
+  roundPlayers(G){return this.players().filter(p=>p.presence.r===G.round).map(p=>({id:String(p.presence.name),answers:p.sameTab?this.ans:(p.presence.a||{})}))},
+  anyStop(G){return (this.stop&&this.round===G.round)||this.players().some(p=>p.presence.r===G.round&&p.presence.stop)},
+  timeUp(G){return G&&G.timer>0&&this.seenPlayAt&&Date.now()-this.seenPlayAt>G.timer*1000},
+  locked(){const G=this.G();return !G||G.phase!=="play"||this.stop||this.anyStop(G)||this.timeUp(G)},
+  reviewSig(){const G=this.G();return JSON.stringify(this.roundPlayers(G).map(p=>[p.id,p.answers]))},
+  push(){if(!this.R)return;this.R.presence({name:this.name,r:this.round,a:this.ans,stop:this.stop}).catch(()=>{})},
+  pushSoon(){clearTimeout(this.pushT);this.pushT=setTimeout(()=>this.push(),250)},
+  setG(g){this.hostG=g;if(this.R)this.R.presence({host:true,g}).catch(e=>{roomErr="Неуспешно обновяване: "+e.message})},
+  async enter(code,asHost){
+    const n=(document.getElementById("o-name").value||"").trim().slice(0,20);
+    if(!n){roomErr="Напиши име, за да влезеш.";draw(true);return}
+    store.set("dgs-name",n);
+    code=code.toLowerCase().replace(/[^a-z0-9]/g,"");
+    if(code.length<3){roomErr="Кодът е твърде кратък.";draw(true);return}
+    try{this.R=await roomApi.join("dgs-"+code)}catch(e){roomErr="Не успях да вляза в стаята ("+e.code+").";draw(true);return}
+    roomErr="";this.code=code;this.name=n;mode="online";
+    this.R.onPeers(()=>this.onChange(),()=>{});
+    if(asHost)this.setG({phase:"lobby",round:0,letter:"",timer:90,hard:false,used:[],struck:[],totals:{}});
+    setTimeout(()=>{ // keep names unique once the room has answered
+      const taken=this.players().filter(p=>!p.sameTab).map(p=>p.presence.name);let nn=this.name,i=2;while(taken.includes(nn))nn=this.name+" "+i++;this.name=nn;this.push();draw(true)},900);
+    this.push();draw(true);
+  },
+  onChange(){
+    const G=this.G();
+    if(G&&G.round!==this.round){this.round=G.round;this.ans={};this.stop=false;this.push()}
+    if(G&&G.phase==="play"&&!this.seenPlayAt)this.seenPlayAt=Date.now();
+    if(G&&G.phase!=="play")this.seenPlayAt=0;
+    if(this.isHost()&&G.phase==="play"&&(this.anyStop(G)||this.timeUp(G))){
+      this.push();setTimeout(()=>{const g=this.hostG;if(g&&g.phase==="play"&&g.round===G.round)this.setG(Object.assign({},g,{phase:"review"}));draw()},1500); // short grace so last words arrive
+    }
+    draw();
+  },
+  mainHTML(){
+    const G=this.G(), H=this.isHost();
+    const top='<div class="row" style="justify-content:space-between;margin-bottom:10px"><span class="tag">Стая '+esc(this.code)+(G&&G.round?" · рунд "+G.round:"")+'</span><button class="link" data-act="o-leave">Излез</button></div>';
+    if(!G)return top+'<div class="center"><h2>Чакаме домакина…</h2><p class="note">Ако домакинът е излязъл, някой може да поеме играта.</p><button data-act="o-takeover">Стани домакин</button></div>';
+    if(G.phase==="lobby")return top+'<h2>Стаята е готова</h2><div class="stack"><div><h3>Код за приятелите</h3><div class="row"><span class="code">'+esc(this.code)+'</span><button data-act="o-copy">Копирай кода</button></div></div>'+
+      (H?settingsHTML(G.timer,G.hard,"o")+'<div class="row"><button class="primary" data-act="o-start">Започни играта</button></div>':'<p class="banner">Чакаме домакина да започне.</p>')+"</div>";
+    if(G.phase==="roll")return top+'<div class="center"><h3>Азбуката тече…</h3><div class="bigletter rolling" id="roll">А</div>'+(H?'<button class="stop" data-act="o-roll-stop">СТОП</button><p class="note">Ти спираш буквата за всички.</p>':'<p class="note">Домакинът ще каже „стоп“.</p>')+"</div>";
+    if(G.phase==="play"){const lk=this.locked();
+      return top+letterBar(G.letter)+(lk?'<p class="banner" id="lockmsg">СТОП! Някой приключи. Броим точките…</p>':'<p class="note" id="lockmsg">Попълни всичко и натисни СТОП, преди другите.</p>')+
+      fieldsHTML("o-",this.ans,lk)+'<div class="row" style="margin-top:16px"><button class="stop" data-act="o-stop" id="o-stopbtn"'+(lk?" disabled":"")+">СТОП</button></div>";}
+    if(G.phase==="review"){const t=reviewTable(this.roundPlayers(G),G.letter,G.struck,H);
+      return top+letterBar(G.letter,true)+t.html+(H?'<div class="row" style="margin-top:16px"><button class="primary" data-act="o-next">Запиши точките и нова буква</button><button data-act="o-end">Край на играта</button></div>':'<p class="note" style="margin-top:12px">Домакинът може да отхвърли несъществуващи думи и пуска следващия рунд.</p>');}
+    if(G.phase==="over"){const e=Object.entries(G.totals).sort((a,b)=>b[1]-a[1]);
+      return top+'<div class="center"><h3>Победител</h3><div class="bigletter" style="font-size:clamp(48px,10vw,80px)">'+esc(e[0]?e[0][0]:"—")+'</div><p>'+(e[0]?e[0][1]+" точки":"")+"</p>"+(H?'<button class="primary" data-act="o-again">Нова игра</button>':"")+"</div>";}
+    return top;
+  },
+  sideHTML(){
+    const G=this.G();if(!this.R)return "";
+    const ps=this.players();
+    const list='<div class="box players"><h3>В стаята ('+ps.length+')</h3><ul>'+ps.map(p=>{const pr=p.presence;let tag="";
+      if(G&&G.phase==="play"){const filled=CATS.filter(([c])=>(pr.a||{})[c]).length;tag=pr.stop?'<span class="tag done">СТОП</span>':'<span class="tag">'+filled+"/"+CATS.length+"</span>"}
+      if(pr.host)tag+=' <span class="tag">домакин</span>';
+      return '<li><span>'+esc(pr.name)+(p.sameTab?" (ти)":"")+"</span><span>"+tag+"</span></li>"}).join("")+"</ul></div>";
+    return list+scoreBox(G&&G.totals);
+  },
+  refreshDynamic(){const b=document.getElementById("o-stopbtn");if(b)b.disabled=this.locked()||CATS.some(([c])=>!(this.ans[c]||"").trim())}
+};
+
+/* ---------------- bots mode ---------------- */
+const DICT={
+country:"Австрия Албания Алжир Ангола Аржентина Армения Австралия Афганистан България Белгия Бразилия Беларус Боливия Бангладеш Ботсвана Великобритания Виетнам Венецуела Ватикан Германия Гърция Грузия Гана Гватемала Дания Доминикана Джибути Египет Естония Еквадор Етиопия Еритрея Замбия Зимбабве Италия Испания Индия Ирландия Исландия Израел Индонезия Иран Ирак Канада Китай Кипър Куба Кения Колумбия Камерун Кувейт Латвия Литва Ливан Либия Люксембург Мексико Малта Мароко Молдова Монголия Мадагаскар Норвегия Непал Нигерия Никарагуа Нигер Оман Полша Португалия Перу Пакистан Панама Парагвай Румъния Русия Руанда Сърбия Словения Словакия Сирия Судан Сенегал Турция Тайланд Тунис Танзания Того Унгария Украйна Уругвай Узбекистан Уганда Франция Финландия Филипини Фиджи Хърватия Холандия Хондурас Хаити Чехия Чили Черна_гора Чад Швеция Швейцария Шри_Ланка Южна_Африка Южна_Корея Япония Ямайка Йемен",
+city:"Атина Амстердам Анкара Асеновград Айтос Бургас Берлин Букурещ Белград Благоевград Ботевград Варна Виена Велико_Търново Видин Враца Варшава Габрово Генуа Гоце_Делчев Добрич Дубай Дъблин Димитровград Елхово Единбург Ерусалим Етрополе Женева Жирона Загреб Златоград Зурич Истанбул Ихтиман Измир Исперих Казанлък Кюстендил Кърджали Карлово Киев Лондон Ловеч Лисабон Лом Мадрид Москва Монтана Милано Мюнхен Несебър Ница Неапол Нова_Загора Охрид Осло Одеса Оряхово Пловдив Плевен Париж Прага Перник Пазарджик Русе Рим Разград Рига Ракитово Созопол София Сливен Стара_Загора Смолян Силистра Търговище Токио Троян Торонто Тетевен Улан_Батор Утрехт Флоренция Франкфурт Хасково Хамбург Хелзинки Хисаря Цюрих Царево Чирпан Чикаго Шумен Шанхай Щутгарт Ямбол Ялта",
+village:"Арбанаси Аврен Бачково Боженци Брестовица Бели_Искър Белащица Вълчин Врачеш Влахи Гела Гинци Горна_Липница Делчево Долен Долна_Кремена Езерово Емен Енина Жеравна Желю_Войвода Звездица Злати_Войвода Згориград Искрец Изгрев Ковачевица Константиново Каменар Кичево Лещен Лозен Миланово Мугла Момчиловци Невестино Неофит_Рилски Огняново Орешак Осеново Паничище Падина Приселци Равадиново Рибарица Ряхово Рудник Старосел Сатовча Скобелево Тешел Триград Тополи Тъжа Устово Фотиново Хърсово Хотово Цонево Чавдар Черешово Широка_лъка Шипково Щърково Югово Юнаците Ягодина Ябълково",
+animal:"Антилопа Акула Бобър Бухал Бизон Вълк Врабче Видра Гъска Гарван Гепард Гущер Горила Делфин Дива_свиня Дрозд Еж Елен Енот Ехидна Жираф Жаба Жерав Заек Зебра Змия Зубър Ибис Игуана Кон Котка Крава Куче Камила Кенгуру Лъв Лисица Лама Лебед Мечка Маймуна Мишка Мравояд Носорог Норка Невестулка Овца Орел Осел Октопод Папагал Пингвин Пеликан Пантера Риба Рис Рак Сова Слон Сърна Скорпион Тигър Тюлен Тапир Удод Улулица Фазан Фламинго Хамстер Хиена Хипопотам Хамелеон Цаца Чакал Чапла Чинчила Шимпанзе Шаран Щъркел Щраус Щука Ягуар Як Ястреб Яребица",
+plant:"Ананас Акация Бор Бреза Боровинка Босилек Върба Виолетка Вишна Детелина Дъб Дюля Домат Ела Елда Еделвайс Жасмин Жълтурче Здравец Зюмбюл Зеле Ирис Иглика Ирга Кактус Карамфил Круша Картоф Лале Липа Люляк Лайка Мак Маргаритка Мента Морков Невен Нар Незабравка Орех Овес Орхидея Пшеница Праскова Пипер Роза Риган Ръж Слива Смокиня Слънчоглед Теменуга Топола Тиква Трендафил Урока Фикус Фасул Фиалка Хризантема Хмел Хрян Циклама Цвекло Царевица Череша Чесън Чубрица Шипка Шафран Шибой Щир Юка Ябълка Ягода Явор",
+thing:"Автобус Албум Акордеон Бутилка Брава Балон Възглавница Вилица Ваза Гребен Гардероб Гъба_за_съдове Диван Дъвка Дъска Ешарп Ексер Електромер Жилетка Жица Звънец Зарядно Запалка Игла Играчка Илик Килим Книга Кана Ключ Лъжица Лампа Лопата Маса Молив Миксер Нож Ножица Найлон Огледало Очила Одеяло Писалка Пейка Перална Раница Рамка Радио Стол Свещ Сешоар Телефон Тиган Тетрадка Умивалник Устройство Фенер Фотьойл Фуркет Химикал Хладилник Хавлия Цедка Цигулка Цип Чаша Чадър Чиния Шапка Шал Шкаф Щипка Щора Щепсел Юрган Ютия Яке Яка",
+name:"Анна Ангел Ася Борис Божана Бисер Вера Васил Виктория Георги Галя Гергана Димитър Даниела Деян Елена Емил Ева Живко Женя Жана Зорница Захари Златка Иван Ирина Илия Калина Красимир Катя Любомир Лора Лъчезар Мария Мартин Милена Николай Нели Нина Огнян Олга Павел Петър Пламена Радост Росен Райна Стефан Силвия Симеон Тодор Теодора Тихомир Уляна Филип Фани Христо Христина Цветелина Цветан Чавдар Чочо Шейна Щилиян Юлия Юлиан Яна Явор Ясен"
+};
+const W={};for(const k in DICT)W[k]=DICT[k].split(" ").map(w=>w.replace(/_/g," "));
+const BOTNAMES=["Бот Ани","Бот Тошо","Бот Мими"];
+const LEVELS={easy:{t:"Лесни",min:9,max:18,skip:.35},normal:{t:"Нормални",min:6,max:12,skip:.18},hard:{t:"Бързи",min:3.5,max:7,skip:.06}};
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const B=Object.assign({screen:"setup",me:"Аз",bots:2,level:"normal",timer:90,hard:false,used:[],letter:"",round:0,totals:{}},store.get("dgs-bots",{}),
+  {ans:{},plans:{},botAns:{},struck:[],startAt:0,endsAt:0,stopBy:"",locked:false});
+const saveB=()=>store.set("dgs-bots",{me:B.me,bots:B.bots,level:B.level,timer:B.timer,hard:B.hard,totals:B.totals,round:B.round,used:B.used});
+Object.assign(B,{
+  names(){return BOTNAMES.slice(0,B.bots)},
+  begin(){
+    B.letter=pickLetter(B.used,B.hard);B.used.push(B.letter);B.round++;B.ans={};B.botAns={};B.struck=[];B.stopBy="";B.locked=false;
+    B.startAt=Date.now();B.endsAt=B.timer>0?B.startAt+B.timer*1000:0;
+    const lv=LEVELS[B.level];B.plans={};
+    B.names().forEach(n=>{
+      let t=rnd(2,5);const plan=[];
+      CATS.map(c=>c[0]).sort(()=>Math.random()-.5).forEach(c=>{
+        const pool=W[c].filter(w=>w[0]===B.letter);
+        t+=rnd(lv.min,lv.max);
+        if(!pool.length||Math.random()<lv.skip)return;
+        const w=Math.random()<.35?pool[Math.floor(Math.random()*Math.min(3,pool.length))]:pool[Math.floor(Math.random()*pool.length)];
+        plan.push({c,w,at:t*1000});
+      });
+      B.plans[n]={plan,done:plan.length===CATS.length?t*1000+rnd(500,2500):Infinity};
+      B.botAns[n]={};
+    });
+    B.screen="play";saveB();
+  },
+  step(){
+    if(B.screen!=="play"||B.locked)return false;
+    const el=Date.now()-B.startAt;let changed=false;
+    for(const n in B.plans){const p=B.plans[n];
+      p.plan.forEach(x=>{if(x.at<=el&&!B.botAns[n][x.c]){B.botAns[n][x.c]=x.w;changed=true}});
+      if(p.done<=el){B.stop(n);return true}}
+    if(B.endsAt&&Date.now()>=B.endsAt){B.stop("");return true}
+    return changed;
+  },
+  stop(by){if(B.locked)return;B.locked=true;B.stopBy=by;draw(true);setTimeout(()=>{if(B.screen==="play"){B.screen="review";draw(true)}},1400)},
+  players(){return [{id:B.me,answers:B.ans}].concat(B.names().map(n=>({id:n,answers:B.botAns[n]||{}})))},
+  mainHTML(){
+    const top='<div class="row" style="justify-content:space-between;margin-bottom:10px"><span class="tag">Срещу ботове'+(B.round?" · рунд "+B.round:"")+'</span><button class="link" data-act="home">← Начало</button></div>';
+    if(B.screen==="setup")return top+'<h2>Игра срещу ботове</h2><div class="stack">'+
+      '<label class="f">Твоето име<input type="text" id="b-me" maxlength="20" value="'+esc(B.me)+'"></label>'+
+      '<div class="row"><label class="f" style="width:140px">Брой ботове<select id="b-bots">'+[1,2,3].map(v=>'<option value="'+v+'"'+(B.bots===v?" selected":"")+">"+v+"</option>").join("")+'</select></label>'+
+      '<label class="f" style="width:160px">Ботовете са<select id="b-level">'+Object.entries(LEVELS).map(([k,v])=>'<option value="'+k+'"'+(B.level===k?" selected":"")+">"+v.t+"</option>").join("")+"</select></label></div>"+
+      settingsHTML(B.timer,B.hard,"b")+
+      '<p class="note">Ботовете понякога пропускат колона или пишат същата дума като теб, точно както истински играчи. Който пръв попълни всичко, казва СТОП.</p>'+
+      '<div class="row"><button class="primary" data-act="b-go">Тегли буква</button>'+(Object.keys(B.totals).length?'<button data-act="b-reset">Нулирай точките</button>':"")+"</div></div>";
+    if(B.screen==="roll")return top+'<div class="center"><h3>Азбуката тече…</h3><div class="bigletter rolling" id="roll">А</div><button class="stop" data-act="b-roll-stop">СТОП</button><p class="note">Ти спираш буквата.</p></div>';
+    if(B.screen==="play"){const lk=B.locked;
+      return top+letterBar(B.letter)+(lk?'<p class="banner">СТОП! '+(B.stopBy?esc(B.stopBy)+" попълни всичко пръв.":"Времето изтече.")+" Броим точките…</p>":'<p class="note">Попълни всичко и натисни СТОП, преди ботовете.</p>')+
+      fieldsHTML("b-",B.ans,lk)+'<div class="row" style="margin-top:16px"><button class="stop" data-act="b-stop" id="b-stopbtn" disabled>СТОП</button></div>';}
+    if(B.screen==="review"){const t=reviewTable(B.players(),B.letter,B.struck,true);
+      return top+letterBar(B.letter,true)+t.html+'<div class="row" style="margin-top:16px"><button class="primary" data-act="b-next">Запиши точките и нова буква</button><button data-act="b-end">Край на играта</button></div>';}
+    if(B.screen==="over"){const e=Object.entries(B.totals).sort((a,b)=>b[1]-a[1]);
+      return top+'<div class="center"><h3>Победител</h3><div class="bigletter" style="font-size:clamp(48px,10vw,80px)">'+esc(e[0]?e[0][0]:"—")+'</div><p>'+(e[0]?e[0][1]+" точки":"")+'</p><button class="primary" data-act="b-again">Нова игра</button></div>';}
+  },
+  sideHTML(){
+    let list="";
+    if(B.screen==="play"){
+      const rows=[[B.me+" (ти)",CATS.filter(([c])=>(B.ans[c]||"").trim()).length,B.stopBy===""&&B.locked&&false]].concat(B.names().map(n=>[n,Object.keys(B.botAns[n]||{}).length,B.stopBy===n]));
+      list='<div class="box players"><h3>Попълнени колони</h3><ul>'+rows.map(([n,f,s])=>'<li><span>'+esc(n)+'</span><span class="tag'+(s?" done":"")+'">'+(s?"СТОП":f+"/"+CATS.length)+"</span></li>").join("")+"</ul></div>";
+    }
+    return list+scoreBox(B.totals);
+  },
+  canStop(){return B.screen==="play"&&!B.locked&&CATS.every(([c])=>(B.ans[c]||"").trim())},
+  addRound(){const r=score(B.players(),B.letter,B.struck);Object.keys(r).forEach(n=>B.totals[n]=(B.totals[n]||0)+r[n].pts)}
+});
+setInterval(()=>{if(mode==="bots"&&B.step())draw()},300);
+
+function tick(){
+  const el=document.getElementById("timer");
+  let left=null;
+  if(mode==="local"&&L.screen==="play"&&L.timer>0)left=(L.endsAt-Date.now())/1000;
+  if(mode==="bots"&&B.screen==="play"&&B.endsAt)left=(B.endsAt-Date.now())/1000;
+  if(mode==="online"){const G=O.G();if(G&&G.phase==="play"&&G.timer>0&&O.seenPlayAt)left=G.timer-(Date.now()-O.seenPlayAt)/1000;
+    if(G&&G.phase==="play"&&O.timeUp(G)&&!/\|L\|/.test(viewKey))O.onChange();}
+  if(el){if(left===null)el.textContent="";else{el.textContent=left>0?"⏱ "+fmt(left):"Времето изтече!";el.classList.toggle("low",left<11)}}
+  refreshDynamic();
+}
+setInterval(tick,500);
+
+/* ---------------- events ---------------- */
+document.addEventListener("input",e=>{
+  const t=e.target;
+  if(mode==="local"&&t.dataset.pi!==undefined){L.players[+t.dataset.pi]=t.value;saveL();return}
+  if(mode==="local"&&t.dataset.lp){(L.answers[t.dataset.lp]=L.answers[t.dataset.lp]||{})[t.dataset.cat]=t.value;saveL();return}
+  if(mode==="bots"&&t.id==="b-me"){B.me=t.value.trim()||"Аз";saveB();return}
+  if(mode==="bots"&&t.dataset.cat){B.ans[t.dataset.cat]=t.value;refreshDynamic();$side.innerHTML=sideHTML();return}
+  if(mode==="online"&&t.dataset.cat){O.ans[t.dataset.cat]=t.value;O.pushSoon();O.refreshDynamic()}
+});
+document.addEventListener("change",e=>{
+  const id=e.target.id;
+  if(id==="l-timer"){L.timer=+e.target.value;saveL()}
+  if(id==="l-hard"){L.hard=e.target.checked;saveL()}
+  if(id==="b-timer"){B.timer=+e.target.value;saveB()}
+  if(id==="b-hard"){B.hard=e.target.checked;saveB()}
+  if(id==="b-bots"){B.bots=+e.target.value;saveB()}
+  if(id==="b-level"){B.level=e.target.value;saveB()}
+  if(id==="o-timer"&&O.isHost())O.setG(Object.assign({},O.hostG,{timer:+e.target.value}));
+  if(id==="o-hard"&&O.isHost())O.setG(Object.assign({},O.hostG,{hard:e.target.checked}));
+});
+document.addEventListener("click",e=>{
+  const b=e.target.closest("[data-act]");if(!b)return;const a=b.dataset.act;
+  if(a==="home"){mode="home";draw(true)}
+  if(a==="l-open"){mode="local";draw(true)}
+  if(a==="b-open"){mode="bots";if(B.screen==="play")B.screen="roll";draw(true)}
+  if(a==="b-go"){if(B.names().includes(B.me))B.me="Аз";B.screen="roll";draw(true)}
+  if(a==="b-reset"){B.totals={};B.used=[];B.round=0;saveB();draw(true)}
+  if(a==="b-roll-stop"){B.begin();draw(true)}
+  if(a==="b-stop"){if(B.canStop())B.stop(B.me)}
+  if(a==="b-next"){B.addRound();B.screen="roll";saveB();draw(true)}
+  if(a==="b-end"){B.addRound();B.screen="over";saveB();draw(true)}
+  if(a==="b-again"){B.totals={};B.used=[];B.round=0;B.screen="setup";saveB();draw(true)}
+  if(a==="l-add"){L.players.push("Играч "+(L.players.length+1));saveL();draw(true)}
+  if(a==="l-del"){L.players.splice(+b.dataset.i,1);saveL();draw(true)}
+  if(a==="l-reset"){L.totals={};L.used=[];L.round=0;saveL();draw(true)}
+  if(a==="l-start"){L.players=L.players.map(p=>p.trim()).filter(Boolean);if(!L.players.length)L.players=["Аз"];
+    L.players=L.players.filter((p,i,arr)=>arr.indexOf(p)===i);L.screen="roll";saveL();draw(true)}
+  if(a==="l-stop"){L.letter=pickLetter(L.used,L.hard);L.used.push(L.letter);L.round=(L.round||0)+1;L.answers={};L.struck=[];L.endsAt=Date.now()+L.timer*1000;L.screen="play";saveL();draw(true)}
+  if(a==="l-check"){L.screen="review";saveL();draw(true)}
+  if(a==="l-edit"){L.screen="play";saveL();draw(true)}
+  if(a==="l-save"){const r=score(L.players.map(p=>({id:p,answers:L.answers[p]||{}})),L.letter,L.struck);
+    L.players.forEach(p=>L.totals[p]=(L.totals[p]||0)+r[p].pts);L.screen="roll";saveL();draw(true)}
+  if(a==="strike"){const k=b.dataset.key;
+    if(mode==="bots"){const i=B.struck.indexOf(k);i<0?B.struck.push(k):B.struck.splice(i,1);draw(true)}
+    else if(mode==="local"){const i=L.struck.indexOf(k);i<0?L.struck.push(k):L.struck.splice(i,1);saveL();draw(true)}
+    else if(O.isHost()){const s=O.hostG.struck.slice(),i=s.indexOf(k);i<0?s.push(k):s.splice(i,1);O.setG(Object.assign({},O.hostG,{struck:s}));draw(true)}}
+  if(a==="o-create"){const c="abcdefghjkmnpqrstuvwxyz23456789";let code="";for(let i=0;i<4;i++)code+=c[Math.floor(Math.random()*c.length)];O.enter(code,true)}
+  if(a==="o-join"){O.enter(document.getElementById("o-code").value||"",false)}
+  if(a==="o-leave"){if(O.R)O.R.leave().catch(()=>{});Object.assign(O,{R:null,hostG:null,round:-1,ans:{},stop:false});mode="home";draw(true)}
+  if(a==="o-copy"){const t=O.code;try{navigator.clipboard.writeText(t).then(()=>{b.textContent="Копирано"},()=>{b.textContent=t})}catch(err){b.textContent=t}}
+  if(a==="o-takeover"){const base=O.lastG||{phase:"lobby",round:0,letter:"",timer:90,hard:false,used:[],struck:[],totals:{}};O.setG(Object.assign({},base,{phase:base.phase==="play"?"review":base.phase}));draw(true)}
+  if(!O.isHost()&&/^o-(start|roll-stop|next|end|again)$/.test(a))return;
+  if(a==="o-start")O.setG(Object.assign({},O.hostG,{phase:"roll"}));
+  if(a==="o-roll-stop"){const g=O.hostG,used=g.used.slice(),l=pickLetter(used,g.hard);used.push(l);O.setG(Object.assign({},g,{phase:"play",letter:l,used,round:g.round+1,struck:[]}))}
+  if(a==="o-next"||a==="o-end"){const g=O.hostG,r=score(O.roundPlayers(g),g.letter,g.struck),tot=Object.assign({},g.totals);
+    Object.keys(r).forEach(n=>tot[n]=(tot[n]||0)+r[n].pts);O.setG(Object.assign({},g,{phase:a==="o-end"?"over":"roll",totals:tot}))}
+  if(a==="o-again")O.setG(Object.assign({},O.hostG,{phase:"lobby",round:O.hostG.round,totals:{},used:[]}));
+  if(a==="o-stop"){if(CATS.some(([c])=>!(O.ans[c]||"").trim()))return;O.stop=true;O.push();O.onChange()}
+  if(/^o-/.test(a))O.onChange();
+});
+document.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target.id==="o-code")document.querySelector('[data-act="o-join"]').click()});
+
+draw(true);
+// The room lights up the online mode when available.
+(async()=>{try{if(window.claude&&claude.use){roomApi=await claude.use("room")}}catch(e){roomApi=null}if(mode==="home")draw(true)})();
+})();
+</script>
+
+</body>
+</html>
